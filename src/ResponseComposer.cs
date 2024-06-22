@@ -58,14 +58,15 @@ public class EchoResponseComposer : IResponseComposer
                 .Any(p => p.Equals(SupportedEncoding, StringComparison.OrdinalIgnoreCase));
 
         Console.WriteLine($"should encode: {shouldEncode}");
+        int? length = null;
         if (shouldEncode)
-            toReflect = Encode(toReflect);
+            (toReflect, length) = Encode(toReflect);
 
         var parts = new List<string>
         {
             $"HTTP/1.1 200 OK",
             "Content-Type: text/plain",
-            $"Content-Length: {toReflect.Length}",
+            $"Content-Length: {length ?? toReflect.Length}",
             "",
             toReflect
         };
@@ -76,7 +77,7 @@ public class EchoResponseComposer : IResponseComposer
         return string.Join(NewLine, parts);
     }
 
-    private string Encode(string body)
+    private (string, int) Encode(string body)
     {
         Console.WriteLine($"before encoding: {body}");
         var bodyBytes = Encoding.UTF8.GetBytes(body);
@@ -86,10 +87,11 @@ public class EchoResponseComposer : IResponseComposer
         gzipStream.Write(bodyBytes, 0, bodyBytes.Length);
 
         var encodedBuffer = stream.ToArray();
-        var encoded = Convert.ToBase64String(encodedBuffer);
+        //var encoded = Convert.ToBase64String(encodedBuffer);
 
-        Console.WriteLine($"after encoding: {encoded}");
-        return encoded;
+        //Console.WriteLine($"after encoding: {encoded}");
+        //return encoded;
+        return (string.Join(" ", encodedBuffer), encodedBuffer.Length);
     }
 }
 
